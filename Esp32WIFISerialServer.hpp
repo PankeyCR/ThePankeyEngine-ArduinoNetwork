@@ -20,7 +20,7 @@
 
 		namespace ArduinoNetwork{
 
-			class Esp32WIFISerialServer : public Network::SerialServer<String,String>{	
+			class Esp32WIFISerialServer : public Network::SerialServer{	
 				public:
 					Esp32WIFISerialServer():server(80){
 						Esp32WIFISerialServerLog(pankey_Log_StartMethod, "Contructor", "server(80)");
@@ -33,8 +33,6 @@
 					Esp32WIFISerialServer(const Esp32WIFISerialServer& a_wifi_server){
 						Esp32WIFISerialServerLog(pankey_Log_StartMethod, "Contructor", "server(port)");
 						server = a_wifi_server.server;
-						m_name = a_wifi_server.m_name;
-						// m_port = a_wifi_server.m_port;
 						Esp32WIFISerialServerLog(pankey_Log_EndMethod, "Contructor", "");
 					}
 					
@@ -56,12 +54,12 @@
 						Esp32WIFISerialServerLog(pankey_Log_EndMethod, "Destructor", "");
 					}
 					
-					virtual Base::unique_ptr<Network::SerialPort<String,String>> accept(){
+					virtual Base::unique_ptr<Network::SerialPort> accept(){
 						Esp32WIFISerialServerLog(pankey_Log_StartMethod, "accept", "");
 						Esp32WIFISerialServerLog(pankey_Log_Statement, "accept", "pankey_GENERIC_ESP32");
 						WiFiClient client = server.accept();   // Listen for incoming clients
 						if(client){
-							Base::unique_ptr<Network::SerialPort<String,String>> i_port = new Esp32WIFISerialPort(client,"ethernet");
+							Base::unique_ptr<Network::SerialPort> i_port = new Esp32WIFISerialPort(client);
 							Esp32WIFISerialServerLog(pankey_Log_EndMethod, "accept", "if(client)");
 							return i_port;
 						}
@@ -69,11 +67,11 @@
 						return nullptr;
 					} 
 					
-					virtual Base::unique_ptr<Network::SerialPort<String,String>> available(){
+					virtual Base::unique_ptr<Network::SerialPort> available(){
 						Esp32WIFISerialServerLog(pankey_Log_StartMethod, "available", "");
 						WiFiClient client = server.available();   // Listen for incoming clients
 						if(client){
-							Base::unique_ptr<Network::SerialPort<String,String>> i_port = new Esp32WIFISerialPort(client,"ethernet");
+							Base::unique_ptr<Network::SerialPort> i_port = new Esp32WIFISerialPort(client);
 							Esp32WIFISerialServerLog(pankey_Log_EndMethod, "available", "if(client)");
 							return i_port;
 						}
@@ -84,8 +82,6 @@
 					virtual void operator=(const Esp32WIFISerialServer& a_wifi_server){
 						Esp32WIFISerialServerLog(pankey_Log_StartMethod, "operator=", "server(port)");
 						server = a_wifi_server.server;
-						m_name = a_wifi_server.m_name;
-						// m_port = a_wifi_server.m_port;
 						Esp32WIFISerialServerLog(pankey_Log_EndMethod, "operator=", "");
 					}
 

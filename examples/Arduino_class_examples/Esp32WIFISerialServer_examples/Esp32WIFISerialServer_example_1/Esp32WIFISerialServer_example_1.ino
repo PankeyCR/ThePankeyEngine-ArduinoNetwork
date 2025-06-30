@@ -8,8 +8,8 @@ using namespace pankey::Network;
 using namespace pankey::ArduinoNetwork;
 
 Esp32WIFISerialServer server;
-ArrayRawPointerList<SerialPort<String,String>> ports;
-ArrayRawPointerList<SerialPort<String,String>> diconnection;
+ArrayRawPointerList<SerialPort> ports;
+ArrayRawPointerList<SerialPort> diconnection;
 
 void setup() {
   Serial.begin(9600);

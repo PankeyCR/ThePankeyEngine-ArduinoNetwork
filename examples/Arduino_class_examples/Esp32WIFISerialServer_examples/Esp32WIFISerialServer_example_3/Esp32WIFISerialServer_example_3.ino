@@ -58,10 +58,11 @@ void loop() {
       continue;
     }
     if(f_port->available() > 0){
-      char f_read = f_port->read();
-      Serial.print("Data input: ");
-      Serial.println(f_read);
-
+      ByteArray f_read = f_protocol->Read(*f_port);
+      if(f_read.isEmpty()){
+        continue;
+      }
+      Message(f_read);
     }
   }
   if(!diconnection.isEmpty()){
@@ -73,4 +74,12 @@ void loop() {
     diconnection.reset();
     Serial.println(ESP.getFreeHeap());
   }
+}
+
+void Message(const ByteArray& a_message){
+  String i_message;
+  for(int x = 0; x < a_message.length(); x++){
+    i_message = pankey::concat(i_message, (char)a_message.get(x));
+  }
+  Serial.println(i_message);
 }

@@ -19,16 +19,10 @@
 
 		namespace ArduinoNetwork{
 
-			class Esp32WIFISerialPort : public Network::SerialPort<String,String>{	
+			class Esp32WIFISerialPort : public Network::SerialPort{	
 				public:
 					Esp32WIFISerialPort(){
 						Esp32WIFISerialPortLog(pankey_Log_StartMethod, "Contructor", "");
-						Esp32WIFISerialPortLog(pankey_Log_EndMethod, "Contructor", "");
-					}
-					
-					Esp32WIFISerialPort(String a_name){
-						Esp32WIFISerialPortLog(pankey_Log_StartMethod, "Contructor", a_name);
-						m_name = a_name;
 						Esp32WIFISerialPortLog(pankey_Log_EndMethod, "Contructor", "");
 					}
 
@@ -43,21 +37,12 @@
 					Esp32WIFISerialPort(const Esp32WIFISerialPort& a_serialport){
 						Esp32WIFISerialPortLog(pankey_Log_StartMethod, "Contructor", "eclient");
 						m_client = a_serialport.m_client;
-						m_name = a_serialport.m_name;
 						Esp32WIFISerialPortLog(pankey_Log_EndMethod, "Contructor", "");
 					}
 
 					Esp32WIFISerialPort(WiFiClient a_client){
 						Esp32WIFISerialPortLog(pankey_Log_StartMethod, "Contructor", "eclient");
 						m_client = a_client;
-						m_name = "eclient";
-						Esp32WIFISerialPortLog(pankey_Log_EndMethod, "Contructor", "");
-					}
-
-					Esp32WIFISerialPort(WiFiClient a_client, String a_name){
-						Esp32WIFISerialPortLog(pankey_Log_StartMethod, "Contructor", a_name);
-						m_client = a_client;
-						m_name = a_name;
 						Esp32WIFISerialPortLog(pankey_Log_EndMethod, "Contructor", "");
 					}
 
@@ -74,40 +59,10 @@
 						return m_client.available();
 					}
 
-					virtual int read(){
+					virtual Byte read(){
 						Esp32WIFISerialPortLog(pankey_Log_StartMethod, "read", "");
 						Esp32WIFISerialPortLog(pankey_Log_EndMethod, "read", "");
-						return m_client.read();
-					}
-
-					virtual String readln(float a_time){
-						Esp32WIFISerialPortLog(pankey_Log_StartMethod, "readln", "");
-						String i_message;
-						long i_time_limit = 1000 * a_time;
-						long i_start_time = millis();
-						Esp32WIFISerialPortLog(pankey_Log_Statement, "readln", "time limit:");
-						Esp32WIFISerialPortLog(pankey_Log_Statement, "readln", i_time_limit);
-						Esp32WIFISerialPortLog(pankey_Log_Statement, "readln", "start limit:");
-						Esp32WIFISerialPortLog(pankey_Log_Statement, "readln", i_start_time);
-						while ((millis() - i_start_time) < i_time_limit) {
-							Esp32WIFISerialPortLog(pankey_Log_Statement, "readln", "while is running");
-							if(this->available() != 0){
-								char i_capture = (char)this->read();
-								Esp32WIFISerialPortLog(pankey_Log_Statement, "readln", "char capture:");
-								Esp32WIFISerialPortLog(pankey_Log_Statement, "readln", i_capture);
-								if(i_capture == '\n'){
-									Esp32WIFISerialPortLog(pankey_Log_Statement, "readln", "note capture:");
-									Esp32WIFISerialPortLog(pankey_Log_Statement, "readln", i_message);
-									return i_message;
-								}
-								Esp32WIFISerialPortLog(pankey_Log_Statement, "readln", "adding char to note:");
-								Esp32WIFISerialPortLog(pankey_Log_Statement, "readln", i_message);
-								i_message = concat(i_message, i_capture);
-								// Watchdog::feed();
-							}
-						}
-						Esp32WIFISerialPortLog(pankey_Log_EndMethod, "readln", "");
-						return "";
+						return (Byte)m_client.read();
 					}
 
 					virtual int peek(){
@@ -116,16 +71,31 @@
 						return m_client.peek();
 					}
 
-					virtual Base::memory_size write(int chr){
+					virtual Base::memory_size write(Byte a_byte){
 						Esp32WIFISerialPortLog(pankey_Log_StartMethod, "write", chr);
 						Esp32WIFISerialPortLog(pankey_Log_EndMethod, "write", "");
-						return m_client.write(chr);
+						return m_client.write((int)a_byte);
 					}
-
-					virtual Base::memory_size write(uint8_t chr){
-						Esp32WIFISerialPortLog(pankey_Log_StartMethod, "write", chr);
-						Esp32WIFISerialPortLog(pankey_Log_EndMethod, "write", "");
-						return m_client.write(chr);
+					
+					virtual Base::memory_size print(const Base::ByteArray& a_message){
+						Esp32WIFISerialPortLog(pankey_Log_StartMethod, "print", "");
+						Base::memory_size i_size = 0;
+						for(int x = 0; x < a_message.length(); x++){
+							i_size += m_client.print(a_message.get(0));
+						}
+						Esp32WIFISerialPortLog(pankey_Log_EndMethod, "print", "");
+						return i_size;
+					}
+					
+					virtual Base::memory_size println(const Base::ByteArray& a_message){
+						Esp32WIFISerialPortLog(pankey_Log_StartMethod, "println", "");
+						Base::memory_size i_size = 0;
+						for(int x = 0; x < a_message.length(); x++){
+							i_size += m_client.print(a_message.get(0));
+						}
+						m_client.println();
+						Esp32WIFISerialPortLog(pankey_Log_EndMethod, "println", "");
+						return i_size;
 					}
 
 					virtual bool connected(){
@@ -134,19 +104,22 @@
 						return m_client.connected();
 					}
 					
-					virtual bool connect(const String& a_address){
+					virtual bool connect(const Base::ByteArray& a_ip){
 						Esp32WIFISerialPortLog(pankey_Log_StartMethod, "connect", "");
 						Esp32WIFISerialPortLog(pankey_Log_EndMethod, "connect", "");
-						return connect(a_address, -1);
+						return connect(a_ip, -1);
 					}
 					
-					virtual bool connect(const String& a_address, int port){
+					virtual bool connect(const Base::ByteArray& a_ip, int port){
 						Esp32WIFISerialPortLog(pankey_Log_StartMethod, "connect", "");
 						
-						IPAddress ip = toIPAddress(a_address);
+						IPAddress i_ip;
+						if(a_ip.length() == 4){
+							i_ip = IPAddress(a_ip.get(0), a_ip.get(1), a_ip.get(2), a_ip.get(3));
+						}
 						
 						Esp32WIFISerialPortLog(pankey_Log_EndMethod, "connect", "");
-						return m_client.connect(ip, port);
+						return m_client.connect(i_ip, port);
 					}
 					
 					virtual void stop(){
@@ -159,18 +132,6 @@
 						Esp32WIFISerialPortLog(pankey_Log_StartMethod, "flush", "");
 						m_client.flush();
 						Esp32WIFISerialPortLog(pankey_Log_EndMethod, "flush", "");
-					}
-					
-					virtual Base::memory_size print(String s){
-						Esp32WIFISerialPortLog(pankey_Log_StartMethod, "print", "");
-						Esp32WIFISerialPortLog(pankey_Log_EndMethod, "print", "");
-						return m_client.print(s);
-					}
-					
-					virtual Base::memory_size println(String s){
-						Esp32WIFISerialPortLog(pankey_Log_StartMethod, "println", "");
-						Esp32WIFISerialPortLog(pankey_Log_EndMethod, "println", "");
-						return m_client.println(s);
 					}
 
 					virtual void operator=(const Esp32WIFISerialPort& a_serialport){
